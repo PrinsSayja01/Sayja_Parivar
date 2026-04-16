@@ -21,7 +21,7 @@ const Header = () => {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <span className="text-xl font-bold gradient-primary bg-clip-text text-transparent" style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            સાજા પરિવાર
+            સાયજા પરિવાર
           </span>
         </Link>
         <nav className="flex items-center gap-3">
