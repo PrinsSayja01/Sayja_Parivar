@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import { FamilyMember } from '@/lib/store';
+aa file pan amra ma chhe tme badhi file aek sathe update kari ne apao name sathe import { FamilyMember } from '@/lib/store';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -27,89 +26,98 @@ const emptyMember = (): FamilyMember => ({
 });
 
 const FamilyMemberForm = ({ members, onChange }: Props) => {
-
-  // auto add first member
-  useEffect(() => {
-    if (members.length === 0) {
-      onChange([emptyMember()]);
-    }
-  }, []);
-
-  const update = (id: string, field: keyof FamilyMember, value: string) => {
-    onChange(members.map(m => m.id === id ? { ...m, [field]: value } : m));
-  };
-
   const addMember = () => onChange([...members, emptyMember()]);
 
-  const removeMember = (id: string) => {
-    if (members.length === 1) {
-      toast({ title: 'ભૂલ', description: 'ઓછામાં ઓછો એક સભ્ય જરૂરી છે', variant: 'destructive' });
-      return;
-    }
-    onChange(members.filter(m => m.id !== id));
+  const updateMember = (id: string, field: keyof FamilyMember, value: string) => {
+    onChange(members.map(m => (m.id === id ? { ...m, [field]: value } : m)));
   };
 
+  const updateMemberFields = (id: string, patch: Partial<FamilyMember>) => {
+    onChange(members.map(m => (m.id === id ? { ...m, ...patch } : m)));
+  };
+
+  const removeMember = (id: string) => onChange(members.filter(m => m.id !== id));
+
   return (
-    <div className="space-y-5">
-
-      <div className="flex justify-between items-center">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="text-lg font-semibold">👨‍👩‍👧 પરિવારના સભ્યો</h3>
-        <Button onClick={addMember} size="sm">➕ સભ્ય ઉમેરો</Button>
+        <Button type="button" onClick={addMember} size="sm" className="gradient-primary text-primary-foreground border-0">
+          ➕ સભ્ય ઉમેરો
+        </Button>
       </div>
-
       <AnimatePresence>
-        {members.map((m, i) => (
+        {members.map((member, idx) => (
           <motion.div
-            key={m.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="border rounded-xl p-4 space-y-4"
+            key={member.id}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-secondary/50 rounded-xl p-4 space-y-3 border border-border"
           >
-
-            <div className="flex justify-between">
-              <span>સભ્ય {i + 1}</span>
-              <Button variant="ghost" onClick={() => removeMember(m.id)}>✕</Button>
+            <div className="flex justify-between items-center flex-wrap gap-2">
+              <span className="font-medium text-sm text-muted-foreground">સભ્ય {idx + 1}</span>
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="ghost" size="sm" onClick={() => removeMember(member.id)} className="text-destructive">
+                  ✕
+                </Button>
+              </div>
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
               <div>
-                <Label>નામ *</Label>
+                <Label>નામ</Label>
                 <div className="flex gap-2">
-                  <Input value={m.name} onChange={e => update(m.id, 'name', e.target.value)} />
-                  <MicButton onTranscript={(t) => update(m.id, 'name', t)} />
+                  <Input value={member.name} onChange={e => updateMember(member.id, 'name', e.target.value)} />
+                  <MicButton title="નામ" onTranscript={(t) => updateMember(member.id, 'name', t)} />
                 </div>
               </div>
-
               <div>
                 <Label>સંબંધ</Label>
-                <Select value={m.relation} onValueChange={v => update(m.id, 'relation', v)}>
-                  <SelectTrigger><SelectValue placeholder="પસંદ કરો" /></SelectTrigger>
-                  <SelectContent>
-                    {RELATION_OPTIONS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select
+                    value={RELATION_OPTIONS.includes(member.relation as any) ? member.relation : (member.relation ? 'અન્ય' : '')}
+                    onValueChange={v => updateMember(member.id, 'relation', v)}
+                  >
+                    <SelectTrigger><SelectValue placeholder="સંબંધ પસંદ કરો" /></SelectTrigger>
+                    <SelectContent>
+                      {RELATION_OPTIONS.map(r => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <MicButton
+                    title="સંબંધ"
+                    onTranscript={(t) => {
+                      const rel = normalizeRelation(t);
+                      updateMember(member.id, 'relation', rel || t);
+                    }}
+                  />
+                </div>
               </div>
-
               <div>
                 <Label>વ્યવસાય</Label>
-                <Input value={m.occupation} onChange={e => update(m.id, 'occupation', e.target.value)} />
+                <div className="flex gap-2">
+                  <Input value={member.occupation} onChange={e => updateMember(member.id, 'occupation', e.target.value)} />
+                  <MicButton title="વ્યવસાય" onTranscript={(t) => updateMember(member.id, 'occupation', t)} />
+                </div>
               </div>
-
               <div>
                 <Label>ભણતર</Label>
-                <Input value={m.education} onChange={e => update(m.id, 'education', e.target.value)} />
+                <div className="flex gap-2">
+                  <Input value={member.education} onChange={e => updateMember(member.id, 'education', e.target.value)} />
+                  <MicButton title="ભણતર" onTranscript={(t) => updateMember(member.id, 'education', t)} />
+                </div>
               </div>
-
               <div>
                 <Label>મોબાઇલ</Label>
-                <Input value={m.mobile} onChange={e => update(m.id, 'mobile', e.target.value)} />
+                <div className="flex gap-2">
+                  <Input value={member.mobile} onChange={e => updateMember(member.id, 'mobile', e.target.value.replace(/\D/g, '').slice(0, 10))} />
+                  <MicButton title="મોબાઇલ" onTranscript={(t) => updateMember(member.id, 'mobile', t.replace(/\D/g, '').slice(0, 10))} />
+                </div>
               </div>
-
               <div>
                 <Label>લિંગ</Label>
-                <Select value={m.gender} onValueChange={v => update(m.id, 'gender', v)}>
+                <Select value={member.gender} onValueChange={v => updateMember(member.id, 'gender', v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="પુરુષ">પુરુષ</SelectItem>
@@ -117,19 +125,19 @@ const FamilyMemberForm = ({ members, onChange }: Props) => {
                   </SelectContent>
                 </Select>
               </div>
-
             </div>
-
             <PhotoUpload
-              value={m.photo}
-              onChange={(url) => update(m.id, 'photo', url)}
-              prefix={`members/${m.id}`}
+              value={member.photo}
+              onChange={url => updateMember(member.id, 'photo', url)}
+              prefix={`members/${member.id}`}
+              label="📷 સભ્યનો ફોટો"
             />
-
           </motion.div>
         ))}
       </AnimatePresence>
-
+      {members.length === 0 && (
+        <p className="text-sm text-muted-foreground text-center py-4">કોઈ સભ્ય ઉમેર્યો નથી. ઉપર ➕ બટન દબાવી સભ્ય ઉમેરો.</p>
+      )}
     </div>
   );
 };
