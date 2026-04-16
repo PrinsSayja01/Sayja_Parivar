@@ -1,204 +1,180 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAppStore, FamilyProfile } from '@/lib/store';
-import { saveProfile } from '@/lib/api';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { motion } from 'framer-motion';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import FamilyMemberForm from '@/components/FamilyMemberForm';
-import PhotoUpload from '@/components/PhotoUpload';
-import MicButton from '@/components/MicButton';
-import { toast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import ExcelJS from 'exceljs';
+import PDFDocument from 'pdfkit';
+import axios from 'axios';
+import Family from '../models/familyModel.js';
 
-const ProfileForm = () => {
-  const { currentUser, setCurrentUser } = useAppStore();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [form, setForm] = useState<FamilyProfile | null>(null);
-  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (!currentUser) {
-      navigate('/login');
-      return;
-    }
-    const prefilled = (location.state as any)?.prefilled;
-    setForm({ ...currentUser, ...(prefilled || {}) });
-  }, [currentUser, navigate, location.state]);
+// =======================
+// ✅ SAVE PROFILE + PDF
+// =======================
+export const saveProfile = async (req, res) => {
+  try {
+    const data = req.body;
 
-  if (!form) return null;
+    let existing = await Family.findOne({ mobile: data.mobile });
 
-  const update = (field: keyof FamilyProfile, value: string | number) => {
-    setForm(prev => prev ? { ...prev, [field]: value } : prev);
-  };
-
-  const handleSave = async () => {
-    if (!form.name.trim()) {
-      toast({ title: 'ભૂલ', description: 'કૃપા કરી નામ દાખલ કરો', variant: 'destructive' });
-      return;
+    if (existing) {
+      existing = await Family.findOneAndUpdate(
+        { mobile: data.mobile },
+        data,
+        { new: true }
+      );
+    } else {
+      existing = await Family.create(data);
     }
 
-    if (!form.mobile.trim()) {
-      toast({ title: 'ભૂલ', description: 'મોબાઇલ નંબર જરૂરી છે', variant: 'destructive' });
-      return;
-    }
+    const pdfBuffer = await generatePDF(existing);
 
-    const cleanedMembers = form.members.filter(m =>
-      m.name.trim() || m.relation.trim() || m.mobile.trim()
-    );
+    res.status(200).json({
+      message: 'Thanks for registration Sayja Parivar',
+      data: existing,
+      pdf: pdfBuffer.toString('base64'),
+    });
 
-    const invalidMember = cleanedMembers.find(m => !m.name.trim());
-
-    if (invalidMember) {
-      toast({ title: 'ભૂલ', description: 'દરેક સભ્યનું નામ જરૂરી છે', variant: 'destructive' });
-      return;
-    }
-
-    setSaving(true);
-
-    try {
-      const res = await saveProfile({ ...form, members: cleanedMembers });
-
-      setCurrentUser(res.data);
-      setForm(res.data);
-
-      // ✅ PDF DOWNLOAD
-      if (res.pdf) {
-        const link = document.createElement('a');
-        link.href = `data:application/pdf;base64,${res.pdf}`;
-        link.download = `Sayja_Parivar_${res.data.mobile}.pdf`;
-        link.click();
-      }
-
-      toast({
-        title: 'સફળતા',
-        description: 'માહિતી સેવ થઈ ગઈ છે અને PDF ડાઉનલોડ થઈ ગઈ છે',
-      });
-
-    } catch (err: any) {
-      toast({
-        title: 'ભૂલ',
-        description: err.message || 'માહિતી સેવ કરવામાં સમસ્યા આવી',
-        variant: 'destructive',
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-3xl mx-auto bg-card rounded-2xl shadow-card border border-border p-6 sm:p-8 space-y-6"
-        >
-          {/* HEADER */}
-          <div className="space-y-2 text-center">
-            <h1 className="text-2xl font-bold">🧾 પરિવાર માહિતી ફોર્મ</h1>
-
-            <p className="text-sm text-muted-foreground">
-              તમારા પરિવારની તમામ માહિતી અહીં ભરો. માહિતી સેવ કર્યા પછી તમને PDF મળશે.
-            </p>
-          </div>
-
-          {/* PROFILE PHOTO */}
-          <PhotoUpload
-            value={form.profilePhoto}
-            onChange={url => update('profilePhoto', url)}
-            prefix={`profiles/${form.id}`}
-            size="lg"
-            label="📷 પ્રોફાઇલ ફોટો"
-          />
-
-          {/* FORM */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-            <div>
-              <Label>નામ *</Label>
-              <div className="flex gap-2">
-                <Input value={form.name} onChange={e => update('name', e.target.value)} />
-                <MicButton title="નામ" onTranscript={(t) => update('name', t)} />
-              </div>
-            </div>
-
-            <div>
-              <Label>મોબાઇલ નંબર</Label>
-              <Input value={form.mobile} disabled className="bg-muted" />
-            </div>
-
-            <div>
-              <Label>Email</Label>
-              <Input value={form.email} onChange={e => update('email', e.target.value)} />
-            </div>
-
-            <div>
-              <Label>મૂળ ગામ</Label>
-              <Input value={form.nativeVillage} onChange={e => update('nativeVillage', e.target.value)} />
-            </div>
-
-            <div>
-              <Label>હાલ ગામ</Label>
-              <Input value={form.currentVillage} onChange={e => update('currentVillage', e.target.value)} />
-            </div>
-
-            <div>
-              <Label>વ્યવસાય</Label>
-              <Input value={form.occupation} onChange={e => update('occupation', e.target.value)} />
-            </div>
-
-            <div>
-              <Label>ભણતર</Label>
-              <Input value={form.education} onChange={e => update('education', e.target.value)} />
-            </div>
-
-            <div>
-              <Label>કુલ સભ્ય</Label>
-              <Input
-                type="number"
-                value={form.totalMembers}
-                onChange={e => update('totalMembers', parseInt(e.target.value) || 1)}
-              />
-            </div>
-
-          </div>
-
-          {/* ADDRESS */}
-          <Textarea
-            value={form.address}
-            onChange={e => update('address', e.target.value)}
-            placeholder="સરનામું"
-          />
-
-          {/* MEMBERS */}
-          <FamilyMemberForm
-            members={form.members}
-            onChange={members => setForm(prev => prev ? { ...prev, members } : prev)}
-          />
-
-          {/* SAVE */}
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full text-lg py-6"
-          >
-            {saving ? <Loader2 className="animate-spin" /> : '💾 માહિતી સાચવો'}
-          </Button>
-
-        </motion.div>
-      </main>
-
-      <Footer />
-    </div>
-  );
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Save failed' });
+  }
 };
 
-export default ProfileForm;
+
+// =======================
+// ✅ EXCEL EXPORT (WITH FAMILY CODE)
+// =======================
+export const exportExcel = async (req, res) => {
+  try {
+    const families = await Family.find();
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Family Data');
+
+    sheet.columns = [
+      { header: 'Family No', key: 'familyCode', width: 12 },
+      { header: 'Name', key: 'name', width: 20 },
+      { header: 'Mobile', key: 'mobile', width: 15 },
+      { header: 'Village', key: 'village', width: 20 },
+
+      { header: 'Member Name', key: 'memberName', width: 20 },
+      { header: 'Relation', key: 'relation', width: 15 },
+      { header: 'Member Mobile', key: 'memberMobile', width: 15 },
+    ];
+
+    families.forEach(f => {
+      const code = f.family_code || '';
+
+      if (f.members?.length) {
+        f.members.forEach(m => {
+          sheet.addRow({
+            familyCode: code,
+            name: f.name,
+            mobile: f.mobile,
+            village: f.nativeVillage,
+            memberName: m.name,
+            relation: m.relation,
+            memberMobile: m.mobile,
+          });
+        });
+      } else {
+        sheet.addRow({
+          familyCode: code,
+          name: f.name,
+          mobile: f.mobile,
+        });
+      }
+    });
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader('Content-Disposition', 'attachment; filename=Sayja_Data.xlsx');
+
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (err) {
+    res.status(500).json({ message: 'Excel error' });
+  }
+};
+
+
+// =======================
+// ✅ PDF (BOX STYLE + FAMILY NUMBER)
+// =======================
+const generatePDF = async (family) => {
+  return new Promise(async (resolve) => {
+    const doc = new PDFDocument({ margin: 40 });
+    const buffers = [];
+
+    doc.on('data', buffers.push.bind(buffers));
+    doc.on('end', () => resolve(Buffer.concat(buffers)));
+
+    // HEADER
+    doc.fontSize(22).text('Sayja Parivar', { align: 'center' });
+    doc.moveDown(0.5);
+    doc.fontSize(12).text('પરિવાર ની સંપૂર્ણ વિગત', { align: 'center' });
+
+    doc.moveDown();
+
+    // FAMILY NUMBER
+    doc.fontSize(14).text(`પરિવાર નંબર: ${family.family_code || '-'}`);
+    doc.moveDown();
+
+    // BOX FUNCTION
+    const drawBox = (label, value) => {
+      doc
+        .rect(doc.x, doc.y, 250, 25)
+        .stroke()
+        .fontSize(10)
+        .text(`${label}: ${value || '-'}`, doc.x + 5, doc.y + 7);
+      doc.moveDown();
+    };
+
+    // MAIN DATA BOXES
+    drawBox('નામ', family.name);
+    drawBox('મોબાઇલ', family.mobile);
+    drawBox('ગામ', family.nativeVillage);
+    drawBox('સરનામું', family.address);
+
+    doc.moveDown();
+
+    // PHOTO
+    if (family.profilePhoto) {
+      try {
+        const img = await axios.get(family.profilePhoto, { responseType: 'arraybuffer' });
+        doc.image(img.data, { width: 100 });
+      } catch {}
+    }
+
+    doc.moveDown();
+
+    // MEMBERS
+    doc.fontSize(16).text('સભ્યોની વિગત');
+    doc.moveDown();
+
+    family.members.forEach((m, i) => {
+      doc.fontSize(12).text(`સભ્ય ${i + 1}`);
+
+      drawBox('નામ', m.name);
+      drawBox('સંબંધ', m.relation);
+      drawBox('મોબાઇલ', m.mobile);
+
+      if (m.photo) {
+        try {
+          const img = await axios.get(m.photo, { responseType: 'arraybuffer' });
+          doc.image(img.data, { width: 80 });
+        } catch {}
+      }
+
+      doc.moveDown();
+    });
+
+    // FOOTER
+    doc.moveDown(2);
+    doc.fontSize(14).text('Thanks for registration Sayja Parivar', {
+      align: 'center',
+    });
+
+    doc.end();
+  });
+};
