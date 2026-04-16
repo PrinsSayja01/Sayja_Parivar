@@ -33,15 +33,15 @@ const Index = () => (
             </h1>
 
             <p className="text-xl text-muted-foreground">
-              પરિવાર ની સંપૂર્ણ અને ડિજિટલ વિગત
+              પરિવાર ની સંપૂર્ણ માહિતી એક જગ્યાએ સંગ્રહ કરવા માટે બનાવાયેલ સિસ્ટમ
             </p>
 
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              આ સિસ્ટમ પરિવારના તમામ સભ્યોની માહિતી સરળ રીતે એકઠી કરવા માટે બનાવવામાં આવી છે. 
-              તમે હાથે ફોર્મ ભરી શકો છો, ફોટો અપલોડ કરી શકો છો અથવા બોલીને પણ માહિતી ભરી શકો છો.
+            <p className="text-muted-foreground text-base">
+              આ પ્લેટફોર્મ દ્વારા તમે તમારા પરિવારના તમામ સભ્યોની માહિતી સરળતાથી ભરી શકો છો.
+              તમે ફોર્મ ભરી શકો, ફોટો અપલોડ કરી શકો અથવા OCR દ્વારા ફોટામાંથી માહિતી આપમેળે મેળવી શકો છો.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
               <Link to="/login">
                 <Button
                   size="lg"
@@ -53,7 +53,7 @@ const Index = () => (
 
               <Link to="/ocr">
                 <Button size="lg" variant="outline" className="text-lg px-8">
-                  📷 ફોટો અપલોડ કરો અને ઓટો ભરો
+                  📷 ફોટો અપલોડ કરીને માહિતી ભરો
                 </Button>
               </Link>
             </div>
@@ -64,36 +64,22 @@ const Index = () => (
       {/* FEATURES SECTION */}
       <section className="py-16 container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
           {[
             {
               icon: '📝',
-              title: 'સરળ ફોર્મ ભરવું',
-              desc: 'ગુજરાતીમાં સરળ ફોર્મ દ્વારા પરિવારની તમામ માહિતી ઝડપથી ભરો.',
+              title: 'સરળ ફોર્મ સિસ્ટમ',
+              desc: 'ગુજરાતીમાં સરળ રીતે પરિવારની સંપૂર્ણ માહિતી ભરો અને સંગ્રહ કરો',
             },
             {
-              icon: '📷',
-              title: 'ફોટો પરથી ઓટો ડેટા',
-              desc: 'ફોર્મનો ફોટો અપલોડ કરો અને સિસ્ટમ આપમેળે માહિતી ઓળખીને ભરી દેશે.',
-            },
-            {
-              icon: '🎤',
-              title: 'બોલીને માહિતી ભરો',
-              desc: 'માઇક દ્વારા બોલીને દરેક કોલમમાં માહિતી ઉમેરો (ગુજરાતી સપોર્ટ).',
-            },
-            {
-              icon: '👨‍👩‍👧',
-              title: 'પરિવારના તમામ સભ્યો',
-              desc: 'મુખ્ય વ્યક્તિ સાથે બધા સભ્યોની સંપૂર્ણ વિગત અને ફોટો સેવ કરો.',
+              icon: '⚡',
+              title: 'ઝડપી ડેટા એન્ટ્રી',
+              desc: 'બોલીને અથવા ટાઇપ કરીને તમામ કોલમમાં ઝડપથી માહિતી ઉમેરો',
             },
             {
               icon: '📊',
               title: 'Excel ડાઉનલોડ',
-              desc: 'તમામ પરિવારનો ડેટા એક જ Excel ફાઇલમાં સરળતાથી ડાઉનલોડ કરો.',
-            },
-            {
-              icon: '🔒',
-              title: 'સુરક્ષિત ડેટા',
-              desc: 'તમારો ડેટા તમારા મોબાઇલ નંબરથી સેવ અને અપડેટ કરી શકાય છે.',
+              desc: 'તમામ પરિવારની માહિતી એક ક્લિકમાં Excel ફાઇલમાં મેળવો',
             },
           ].map((item, i) => (
             <motion.div
@@ -108,14 +94,16 @@ const Index = () => (
               <p className="text-muted-foreground text-sm">{item.desc}</p>
             </motion.div>
           ))}
+
         </div>
       </section>
 
-      {/* EXTRA INFO SECTION */}
-      <section className="py-12 text-center px-4">
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          તમે ફોર્મ હાથથી ભરો, ફોટો અપલોડ કરો અથવા બોલીને માહિતી ઉમેરો — 
-          આ સિસ્ટમ તમને ઝડપથી અને સરળ રીતે પરિવારની સંપૂર્ણ માહિતી સાચવવામાં મદદ કરે છે.
+      {/* INFO SECTION */}
+      <section className="pb-20 container mx-auto px-4 text-center max-w-3xl">
+        <p className="text-muted-foreground text-base leading-relaxed">
+          આ સિસ્ટમ ખાસ કરીને પરિવારની માહિતી એકઠી કરવા માટે બનાવવામાં આવી છે.
+          દરેક સભ્યની વિગતો, ફોટો અને અન્ય માહિતી સુરક્ષિત રીતે સંગ્રહિત થાય છે.
+          તમે જ્યારે પણ ઇચ્છો ત્યારે માહિતી અપડેટ કરી શકો છો અને Excel માં ડાઉનલોડ કરી શકો છો.
         </p>
       </section>
     </main>
