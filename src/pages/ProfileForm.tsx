@@ -1,176 +1,220 @@
-import { FamilyMember } from '@/lib/store';
+import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAppStore, FamilyProfile } from '@/lib/store';
+import { saveProfile } from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import MicButton from '@/components/MicButton';
+import { Textarea } from '@/components/ui/textarea';
+import { motion } from 'framer-motion';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import FamilyMemberForm from '@/components/FamilyMemberForm';
 import PhotoUpload from '@/components/PhotoUpload';
-import { Plus, X } from 'lucide-react';
+import MicButton from '@/components/MicButton';
+import { toast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
-interface Props {
-  members: FamilyMember[];
-  onChange: (members: FamilyMember[]) => void;
-}
+const ProfileForm = () => {
+  const { currentUser, setCurrentUser } = useAppStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [form, setForm] = useState<FamilyProfile | null>(null);
+  const [saving, setSaving] = useState(false);
 
-const relationOptions = [
-  'પિતા',
-  'માતા',
-  'ભાઈ',
-  'બહેન',
-  'પુત્ર',
-  'દીકરી',
-  'પતિ',
-  'પત્ની',
-  'દાદા',
-  'દાદી',
-  'કાકા',
-  'કાકી',
-  'અન્ય',
-];
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/login');
+      return;
+    }
+    const prefilled = (location.state as any)?.prefilled;
+    setForm({ ...currentUser, ...(prefilled || {}) });
+  }, [currentUser, navigate, location.state]);
 
-const createEmptyMember = (): FamilyMember => ({
-  id: crypto.randomUUID(),
-  name: '',
-  relation: '',
-  occupation: '',
-  education: '',
-  mobile: '',
-  gender: 'પુરુષ',
-  photo: '',
-});
+  if (!form) return null;
 
-const FamilyMemberForm = ({ members, onChange }: Props) => {
-
-  const updateMember = (index: number, field: keyof FamilyMember, value: string) => {
-    const updated = [...members];
-    updated[index] = { ...updated[index], [field]: value };
-    onChange(updated);
+  const update = (field: keyof FamilyProfile, value: string | number) => {
+    setForm(prev => prev ? { ...prev, [field]: value } : prev);
   };
 
-  const addMember = () => {
-    onChange([...members, createEmptyMember()]);
-  };
+  const handleSave = async () => {
+    if (!form.name.trim()) {
+      toast({ title: 'ભૂલ', description: 'કૃપા કરી નામ દાખલ કરો', variant: 'destructive' });
+      return;
+    }
 
-  const removeMember = (index: number) => {
-    const updated = members.filter((_, i) => i !== index);
-    onChange(updated);
+    if (!form.mobile.trim()) {
+      toast({ title: 'ભૂલ', description: 'મોબાઇલ નંબર જરૂરી છે', variant: 'destructive' });
+      return;
+    }
+
+    const cleanedMembers = form.members.filter(m =>
+      m.name.trim() || m.relation.trim() || m.mobile.trim()
+    );
+
+    const invalidMember = cleanedMembers.find(m => !m.name.trim());
+
+    if (invalidMember) {
+      toast({ title: 'ભૂલ', description: 'દરેક સભ્યનું નામ જરૂરી છે', variant: 'destructive' });
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      const saved = await saveProfile({ ...form, members: cleanedMembers });
+      setCurrentUser(saved);
+      setForm(saved);
+
+      toast({
+        title: 'સફળતા',
+        description: 'તમારી માહિતી સફળતાપૂર્વક સેવ થઈ ગઈ છે',
+      });
+
+    } catch (err: any) {
+      toast({
+        title: 'ભૂલ',
+        description: err.message || 'માહિતી સેવ કરવામાં સમસ્યા આવી',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold">👨‍👩‍👧 પરિવારના સભ્યો</h2>
+    <div className="min-h-screen flex flex-col">
+      <Header />
 
-      {members.map((member, index) => (
-        <div key={member.id} className="border border-border rounded-xl p-4 space-y-4 relative">
+      <main className="flex-1 container mx-auto px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-3xl mx-auto bg-card rounded-2xl shadow-card border border-border p-6 sm:p-8 space-y-6"
+        >
+          {/* HEADER */}
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold">🧾 પરિવાર માહિતી ફોર્મ</h1>
 
-          {/* REMOVE BUTTON */}
-          <button
-            onClick={() => removeMember(index)}
-            className="absolute top-2 right-2 text-muted-foreground hover:text-red-500"
-          >
-            <X size={18} />
-          </button>
+            <p className="text-sm text-muted-foreground">
+              અહીં તમે તમારા પરિવારની સંપૂર્ણ માહિતી ભરી શકો છો. દરેક ફીલ્ડની બાજુમાં 🎤 બટન દ્વારા બોલીને પણ માહિતી દાખલ કરી શકાય છે.
+            </p>
+          </div>
 
-          <h3 className="font-medium">સભ્ય {index + 1}</h3>
+          {/* PROFILE PHOTO */}
+          <div className="bg-secondary/50 rounded-xl p-4 border border-border">
+            <PhotoUpload
+              value={form.profilePhoto}
+              onChange={url => update('profilePhoto', url)}
+              prefix={`profiles/${form.id}`}
+              size="lg"
+              label="📷 પ્રોફાઇલ ફોટો"
+            />
+          </div>
 
+          {/* MAIN FORM */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-            {/* NAME */}
             <div>
               <Label>નામ *</Label>
               <div className="flex gap-2">
-                <Input
-                  value={member.name}
-                  onChange={(e) => updateMember(index, 'name', e.target.value)}
-                />
-                <MicButton title="નામ" onTranscript={(t) => updateMember(index, 'name', t)} />
+                <Input value={form.name} onChange={e => update('name', e.target.value)} />
+                <MicButton title="નામ" onTranscript={(t) => update('name', t)} />
               </div>
             </div>
 
-            {/* RELATION */}
             <div>
-              <Label>સંબંધ</Label>
-              <select
-                className="w-full border rounded-md px-3 py-2 bg-background"
-                value={member.relation}
-                onChange={(e) => updateMember(index, 'relation', e.target.value)}
-              >
-                <option value="">પસંદ કરો</option>
-                {relationOptions.map((rel, i) => (
-                  <option key={i} value={rel}>{rel}</option>
-                ))}
-              </select>
+              <Label>મોબાઇલ નંબર</Label>
+              <Input value={form.mobile} disabled className="bg-muted" />
             </div>
 
-            {/* OCCUPATION */}
+            <div>
+              <Label>Email ID</Label>
+              <Input
+                type="email"
+                value={form.email}
+                onChange={e => update('email', e.target.value)}
+              />
+            </div>
+
+            <div>
+              <Label>મૂળ ગામ</Label>
+              <div className="flex gap-2">
+                <Input value={form.nativeVillage} onChange={e => update('nativeVillage', e.target.value)} />
+                <MicButton title="મૂળ ગામ" onTranscript={(t) => update('nativeVillage', t)} />
+              </div>
+            </div>
+
+            <div>
+              <Label>હાલ ગામ</Label>
+              <div className="flex gap-2">
+                <Input value={form.currentVillage} onChange={e => update('currentVillage', e.target.value)} />
+                <MicButton title="હાલ ગામ" onTranscript={(t) => update('currentVillage', t)} />
+              </div>
+            </div>
+
             <div>
               <Label>વ્યવસાય</Label>
               <div className="flex gap-2">
-                <Input
-                  value={member.occupation}
-                  onChange={(e) => updateMember(index, 'occupation', e.target.value)}
-                />
-                <MicButton title="વ્યવસાય" onTranscript={(t) => updateMember(index, 'occupation', t)} />
+                <Input value={form.occupation} onChange={e => update('occupation', e.target.value)} />
+                <MicButton title="વ્યવસાય" onTranscript={(t) => update('occupation', t)} />
               </div>
             </div>
 
-            {/* EDUCATION */}
             <div>
               <Label>ભણતર</Label>
               <div className="flex gap-2">
-                <Input
-                  value={member.education}
-                  onChange={(e) => updateMember(index, 'education', e.target.value)}
-                />
-                <MicButton title="ભણતર" onTranscript={(t) => updateMember(index, 'education', t)} />
+                <Input value={form.education} onChange={e => update('education', e.target.value)} />
+                <MicButton title="ભણતર" onTranscript={(t) => update('education', t)} />
               </div>
             </div>
 
-            {/* MOBILE */}
             <div>
-              <Label>મોબાઇલ</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={member.mobile}
-                  onChange={(e) => updateMember(index, 'mobile', e.target.value)}
-                />
-                <MicButton title="મોબાઇલ" onTranscript={(t) => updateMember(index, 'mobile', t)} />
-              </div>
-            </div>
-
-            {/* GENDER */}
-            <div>
-              <Label>લિંગ</Label>
-              <select
-                className="w-full border rounded-md px-3 py-2 bg-background"
-                value={member.gender}
-                onChange={(e) => updateMember(index, 'gender', e.target.value)}
-              >
-                <option value="પુરુષ">પુરુષ</option>
-                <option value="સ્ત્રી">સ્ત્રી</option>
-              </select>
+              <Label>ઘરનાં કુલ સભ્ય</Label>
+              <Input
+                type="number"
+                min={1}
+                value={form.totalMembers}
+                onChange={e => update('totalMembers', parseInt(e.target.value) || 1)}
+              />
             </div>
 
           </div>
 
-          {/* PHOTO */}
-          <PhotoUpload
-            value={member.photo}
-            onChange={(url) => updateMember(index, 'photo', url)}
-            prefix={`members/${member.id}`}
-            label="📷 સભ્યનો ફોટો"
+          {/* ADDRESS */}
+          <div>
+            <Label>એડ્રેસ</Label>
+            <div className="flex gap-2">
+              <Textarea
+                value={form.address}
+                onChange={e => update('address', e.target.value)}
+                rows={3}
+              />
+              <MicButton title="એડ્રેસ" onTranscript={(t) => update('address', t)} />
+            </div>
+          </div>
+
+          {/* MEMBERS */}
+          <FamilyMemberForm
+            members={form.members}
+            onChange={members => setForm(prev => prev ? { ...prev, members } : prev)}
           />
 
-        </div>
-      ))}
+          {/* SAVE BUTTON */}
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full gradient-primary text-primary-foreground border-0 text-lg py-6"
+          >
+            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : '💾 માહિતી સાચવો'}
+          </Button>
 
-      {/* ADD BUTTON */}
-      <Button onClick={addMember} variant="outline" className="w-full gap-2">
-        <Plus size={16} />
-        ➕ સભ્ય ઉમેરો
-      </Button>
+        </motion.div>
+      </main>
 
+      <Footer />
     </div>
   );
 };
 
-export default FamilyMemberForm;
+export default ProfileForm;
