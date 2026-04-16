@@ -19,7 +19,7 @@ const Index = () => (
           >
             <h1 className="text-4xl sm:text-6xl font-bold tracking-tight">
               <span className="gradient-primary bg-clip-text" style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                સાજા પરિવાર
+                સાયજા પરિવાર
               </span>
             </h1>
             <p className="text-xl text-muted-foreground">પરિવાર ની સંપૂર્ણ વિગત</p>
