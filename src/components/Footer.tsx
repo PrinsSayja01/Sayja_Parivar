@@ -29,7 +29,7 @@ const Footer = () => (
           Instagram
         </a>
       </div>
-      <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} સાજા પરિવાર</p>
+      <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} સાયજા પરિવાર</p>
     </div>
   </motion.footer>
 );
