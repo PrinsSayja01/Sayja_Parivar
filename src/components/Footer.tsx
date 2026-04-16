@@ -8,7 +8,7 @@ const Footer = () => (
   >
     <div className="container mx-auto px-4 text-center space-y-4">
       <p className="text-muted-foreground text-sm">
-        Developed by <span className="font-semibold text-foreground">ER. Prins Sayja</span>
+        Developed by <span className="font-semibold text-foreground">ER.Prins Sayja</span>
       </p>
       <p className="text-muted-foreground text-sm">📞 +91 8140805960</p>
       <div className="flex justify-center gap-4">
