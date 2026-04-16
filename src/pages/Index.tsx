@@ -9,7 +9,7 @@ const Index = () => (
     <Header />
 
     <main className="flex-1">
-      {/* HERO */}
+      {/* HERO SECTION */}
       <section className="relative overflow-hidden py-24 sm:py-32">
         <div className="absolute inset-0 gradient-warm opacity-50" />
 
@@ -20,7 +20,7 @@ const Index = () => (
             transition={{ duration: 0.6 }}
             className="max-w-3xl mx-auto space-y-6"
           >
-            <h1 className="text-4xl sm:text-6xl font-bold">
+            <h1 className="text-4xl sm:text-6xl font-bold tracking-tight">
               <span
                 className="gradient-primary bg-clip-text"
                 style={{
@@ -33,12 +33,12 @@ const Index = () => (
             </h1>
 
             <p className="text-xl text-muted-foreground">
-              પરિવાર ની સંપૂર્ણ માહિતી સરળ રીતે સંગ્રહ કરો
+              પરિવાર ની સંપૂર્ણ માહિતી એક જગ્યાએ સંગ્રહ કરવા માટે બનાવાયેલ સિસ્ટમ
             </p>
 
             <p className="text-muted-foreground text-base">
-              આ સિસ્ટમમાં તમે તમારા પરિવારના તમામ સભ્યોની માહિતી એક જગ્યાએ ભરી શકો છો.
-              એક વાર માહિતી સેવ કર્યા પછી તે સુરક્ષિત રીતે સેવ થઈ જાય છે અને પછી તમે તેને ફરી જોઈ અથવા સુધારી શકો છો.
+              આ પ્લેટફોર્મ દ્વારા તમે તમારા પરિવારના તમામ સભ્યોની માહિતી સરળતાથી ભરી શકો છો.
+              તમે ફોર્મ ભરી શકો, ફોટો અપલોડ કરી શકો અથવા OCR દ્વારા ફોટામાંથી માહિતી આપમેળે મેળવી શકો છો.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
@@ -50,30 +50,36 @@ const Index = () => (
                   ➕ નવી માહિતી ઉમેરો
                 </Button>
               </Link>
+
+              <Link to="/ocr">
+                <Button size="lg" variant="outline" className="text-lg px-8">
+                  📷 ફોટો અપલોડ કરીને માહિતી ભરો
+                </Button>
+              </Link>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* FEATURES */}
+      {/* FEATURES SECTION */}
       <section className="py-16 container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
           {[
             {
               icon: '📝',
-              title: 'સરળ માહિતી દાખલ કરો',
-              desc: 'ગુજરાતીમાં સરળ રીતે તમામ વિગતો ભરો',
+              title: 'સરળ ફોર્મ સિસ્ટમ',
+              desc: 'ગુજરાતીમાં સરળ રીતે પરિવારની સંપૂર્ણ માહિતી ભરો અને સંગ્રહ કરો',
             },
             {
-              icon: '💾',
-              title: 'ડેટા સુરક્ષિત રીતે સેવ થાય',
-              desc: 'તમારી માહિતી એક વાર સેવ કર્યા પછી સુરક્ષિત રીતે સ્ટોર થાય છે',
+              icon: '⚡',
+              title: 'ઝડપી ડેટા એન્ટ્રી',
+              desc: 'બોલીને અથવા ટાઇપ કરીને તમામ કોલમમાં ઝડપથી માહિતી ઉમેરો',
             },
             {
-              icon: '✏️',
-              title: 'માહિતી સુધારો',
-              desc: 'તમે કોઈપણ સમયે તમારી માહિતીમાં ફેરફાર કરી શકો છો',
+              icon: '📊',
+              title: 'Excel ડાઉનલોડ',
+              desc: 'તમામ પરિવારની માહિતી એક ક્લિકમાં Excel ફાઇલમાં મેળવો',
             },
           ].map((item, i) => (
             <motion.div
@@ -92,12 +98,12 @@ const Index = () => (
         </div>
       </section>
 
-      {/* INFO */}
+      {/* INFO SECTION */}
       <section className="pb-20 container mx-auto px-4 text-center max-w-3xl">
         <p className="text-muted-foreground text-base leading-relaxed">
-          આ પ્લેટફોર્મ પરિવારની માહિતી એકઠી કરવા માટે બનાવવામાં આવ્યું છે.
-          દરેક સભ્યની માહિતી સરળ રીતે ભરી શકાય છે અને તે સુરક્ષિત રીતે સંગ્રહિત થાય છે.
-          તમે પછી કોઈપણ સમયે આવી માહિતી ફરી જોઈ શકો છો અને તેમાં ફેરફાર કરી શકો છો.
+          આ સિસ્ટમ ખાસ કરીને પરિવારની માહિતી એકઠી કરવા માટે બનાવવામાં આવી છે.
+          દરેક સભ્યની વિગતો, ફોટો અને અન્ય માહિતી સુરક્ષિત રીતે સંગ્રહિત થાય છે.
+          તમે જ્યારે પણ ઇચ્છો ત્યારે માહિતી અપડેટ કરી શકો છો અને Excel માં ડાઉનલોડ કરી શકો છો.
         </p>
       </section>
     </main>
