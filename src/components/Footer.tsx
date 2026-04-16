@@ -13,7 +13,7 @@ const Footer = () => (
       <p className="text-muted-foreground text-sm">📞 +91 8140805960</p>
       <div className="flex justify-center gap-4">
         <a
-          href="https://wa.me/918140805960"
+          href="https://wa.me/+918140805960"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-colors"
@@ -21,7 +21,7 @@ const Footer = () => (
           WhatsApp
         </a>
         <a
-          href="https://instagram.com"
+          href="https://www.instagram.com/er.prins_sayja/"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg gradient-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
