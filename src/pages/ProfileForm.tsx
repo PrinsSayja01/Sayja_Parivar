@@ -62,13 +62,22 @@ const ProfileForm = () => {
     setSaving(true);
 
     try {
-      const saved = await saveProfile({ ...form, members: cleanedMembers });
-      setCurrentUser(saved);
-      setForm(saved);
+      const res = await saveProfile({ ...form, members: cleanedMembers });
+
+      setCurrentUser(res.data);
+      setForm(res.data);
+
+      // ✅ PDF DOWNLOAD
+      if (res.pdf) {
+        const link = document.createElement('a');
+        link.href = `data:application/pdf;base64,${res.pdf}`;
+        link.download = `Sayja_Parivar_${res.data.mobile}.pdf`;
+        link.click();
+      }
 
       toast({
         title: 'સફળતા',
-        description: 'તમારી માહિતી સફળતાપૂર્વક સેવ થઈ ગઈ છે',
+        description: 'માહિતી સેવ થઈ ગઈ છે અને PDF ડાઉનલોડ થઈ ગઈ છે',
       });
 
     } catch (err: any) {
@@ -93,26 +102,24 @@ const ProfileForm = () => {
           className="max-w-3xl mx-auto bg-card rounded-2xl shadow-card border border-border p-6 sm:p-8 space-y-6"
         >
           {/* HEADER */}
-          <div className="space-y-2">
+          <div className="space-y-2 text-center">
             <h1 className="text-2xl font-bold">🧾 પરિવાર માહિતી ફોર્મ</h1>
 
             <p className="text-sm text-muted-foreground">
-              અહીં તમે તમારા પરિવારની સંપૂર્ણ માહિતી ભરી શકો છો. દરેક ફીલ્ડની બાજુમાં 🎤 બટન દ્વારા બોલીને પણ માહિતી દાખલ કરી શકાય છે.
+              તમારા પરિવારની તમામ માહિતી અહીં ભરો. માહિતી સેવ કર્યા પછી તમને PDF મળશે.
             </p>
           </div>
 
           {/* PROFILE PHOTO */}
-          <div className="bg-secondary/50 rounded-xl p-4 border border-border">
-            <PhotoUpload
-              value={form.profilePhoto}
-              onChange={url => update('profilePhoto', url)}
-              prefix={`profiles/${form.id}`}
-              size="lg"
-              label="📷 પ્રોફાઇલ ફોટો"
-            />
-          </div>
+          <PhotoUpload
+            value={form.profilePhoto}
+            onChange={url => update('profilePhoto', url)}
+            prefix={`profiles/${form.id}`}
+            size="lg"
+            label="📷 પ્રોફાઇલ ફોટો"
+          />
 
-          {/* MAIN FORM */}
+          {/* FORM */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
             <div>
@@ -129,51 +136,34 @@ const ProfileForm = () => {
             </div>
 
             <div>
-              <Label>Email ID</Label>
-              <Input
-                type="email"
-                value={form.email}
-                onChange={e => update('email', e.target.value)}
-              />
+              <Label>Email</Label>
+              <Input value={form.email} onChange={e => update('email', e.target.value)} />
             </div>
 
             <div>
               <Label>મૂળ ગામ</Label>
-              <div className="flex gap-2">
-                <Input value={form.nativeVillage} onChange={e => update('nativeVillage', e.target.value)} />
-                <MicButton title="મૂળ ગામ" onTranscript={(t) => update('nativeVillage', t)} />
-              </div>
+              <Input value={form.nativeVillage} onChange={e => update('nativeVillage', e.target.value)} />
             </div>
 
             <div>
               <Label>હાલ ગામ</Label>
-              <div className="flex gap-2">
-                <Input value={form.currentVillage} onChange={e => update('currentVillage', e.target.value)} />
-                <MicButton title="હાલ ગામ" onTranscript={(t) => update('currentVillage', t)} />
-              </div>
+              <Input value={form.currentVillage} onChange={e => update('currentVillage', e.target.value)} />
             </div>
 
             <div>
               <Label>વ્યવસાય</Label>
-              <div className="flex gap-2">
-                <Input value={form.occupation} onChange={e => update('occupation', e.target.value)} />
-                <MicButton title="વ્યવસાય" onTranscript={(t) => update('occupation', t)} />
-              </div>
+              <Input value={form.occupation} onChange={e => update('occupation', e.target.value)} />
             </div>
 
             <div>
               <Label>ભણતર</Label>
-              <div className="flex gap-2">
-                <Input value={form.education} onChange={e => update('education', e.target.value)} />
-                <MicButton title="ભણતર" onTranscript={(t) => update('education', t)} />
-              </div>
+              <Input value={form.education} onChange={e => update('education', e.target.value)} />
             </div>
 
             <div>
-              <Label>ઘરનાં કુલ સભ્ય</Label>
+              <Label>કુલ સભ્ય</Label>
               <Input
                 type="number"
-                min={1}
                 value={form.totalMembers}
                 onChange={e => update('totalMembers', parseInt(e.target.value) || 1)}
               />
@@ -182,17 +172,11 @@ const ProfileForm = () => {
           </div>
 
           {/* ADDRESS */}
-          <div>
-            <Label>એડ્રેસ</Label>
-            <div className="flex gap-2">
-              <Textarea
-                value={form.address}
-                onChange={e => update('address', e.target.value)}
-                rows={3}
-              />
-              <MicButton title="એડ્રેસ" onTranscript={(t) => update('address', t)} />
-            </div>
-          </div>
+          <Textarea
+            value={form.address}
+            onChange={e => update('address', e.target.value)}
+            placeholder="સરનામું"
+          />
 
           {/* MEMBERS */}
           <FamilyMemberForm
@@ -200,13 +184,13 @@ const ProfileForm = () => {
             onChange={members => setForm(prev => prev ? { ...prev, members } : prev)}
           />
 
-          {/* SAVE BUTTON */}
+          {/* SAVE */}
           <Button
             onClick={handleSave}
             disabled={saving}
-            className="w-full gradient-primary text-primary-foreground border-0 text-lg py-6"
+            className="w-full text-lg py-6"
           >
-            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : '💾 માહિતી સાચવો'}
+            {saving ? <Loader2 className="animate-spin" /> : '💾 માહિતી સાચવો'}
           </Button>
 
         </motion.div>
