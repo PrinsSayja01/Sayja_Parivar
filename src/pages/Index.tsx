@@ -9,7 +9,7 @@ const FEATURES = [
   { icon: '🏠', title: 'પરિવારો', desc: 'કાર્ડ + વિગતો', to: '/families' },
   { icon: '🗺️', title: 'નકશો', desc: 'OpenStreetMap free', to: '/map' },
   { icon: '🌳', title: 'ફેમિલી ટ્રી', desc: 'વંશાવળી', to: '/tree' },
-  { icon: '🎉', title: 'પ્રસંગો', desc: 'સમુદાયના કાર્યક્રમો', to: '/events' },
+  { icon: '🎉', title: 'પ્રસંગો', desc: 'પરિવારના કાર્યક્રમો', to: '/events' },
 ];
 
 const Index = () => (
@@ -30,7 +30,7 @@ const Index = () => (
                 સાયજા પરિવાર
               </span>
             </h1>
-            <p className="text-xl text-muted-foreground">સંપૂર્ણ સમુદાય પ્લેટફોર્મ — નકશો, ડિરેક્ટરી, ID કાર્ડ, પ્રસંગો</p>
+            <p className="text-xl text-muted-foreground">સંપૂર્ણ પરિવાર પ્લેટફોર્મ — નકશો, ડિરેક્ટરી, ID કાર્ડ, પ્રસંગો</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4 flex-wrap">
               <Link to="/login">
                 <Button size="lg" className="gradient-primary text-primary-foreground border-0 shadow-elevated text-lg px-8 py-6">
